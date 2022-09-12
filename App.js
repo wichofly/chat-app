@@ -5,7 +5,6 @@ import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
-//import the screens to navigate
 import Start from './components/Start';
 import Chat from './components/Chat';
 
