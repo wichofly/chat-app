@@ -13,6 +13,10 @@ export default class Chat extends Component {
   }
 
   componentDidMount() {
+     // Passing the name from value={this.state.name} on start.js file
+    let { name } = this.props.route.params;
+    this.props.navigation.setOptions({ title: name });
+
     this.setState({
       messages: [
         {
@@ -27,10 +31,37 @@ export default class Chat extends Component {
         },
         {
           _id: 2,
-          text: 'This is a sytem message',
+          text: `${name} has entered the chat`,
           createdAt: new Date(),
           system: true
-        }
+        },
+        {
+          _id: 3,
+          text: 'This is a quick reply. Do you love Gifted Chat? (checkbox) KEEP IT',
+          createdAt: new Date(),
+          quickReplies: {
+            type: 'checkbox', // or 'radio',
+            keepIt: true,
+            values: [
+              {
+                title: '😋 Yes',
+                value: 'yes',
+              },
+              {
+                title: '📷 Yes, let me show you with a picture!',
+                value: 'yes_picture',
+              },
+              {
+                title: '😞 Nope. What?',
+                value: 'no',
+              },
+            ],
+          },
+          user: {
+            _id: 2,
+            name: 'React Native',
+          },
+        },
       ],
     })
   }
@@ -54,15 +85,11 @@ export default class Chat extends Component {
   }
 
   render() {
-    const { color } = this.props.route.params;
-
-    // Passing the name from value={this.state.name} on start.js file
-    let name = this.props.route.params.name;
-    this.props.navigation.setOptions({ title: name })
+    const { color } = this.props.route.params; 
 
     return (
-      <View style={styles.container}>
-        <GiftedChat 
+      <View style={[{ backgroundColor: color }, styles.container]}>
+        <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           messages={this.state.messages}
           onSend={messages => this.onSend(messages)}

@@ -1,18 +1,19 @@
 import React, { Component } from 'react';
 import { View, Text, Button, TextInput, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
+import userImg from '../assets/icon.svg'
 
 export default class Start extends Component {
   constructor(props) {
     super(props);
-    this.state = { name: '', color: '#D7C0AE' }
+    this.state = { name: '', color: '' }
   }
-
+  
   render() {
     return (
       <View style={styles.container}>
         <ImageBackground source={require('../assets/Background-Image.png')} style={styles.image}>
           <Text style={styles.title}>Chat App</Text>
-          <View style={styles.box}>
+          <View style={styles.box}>            
             {/* More than 2 styles we use [] */}
             <TextInput style={[styles.input, styles.text]}
               onChangeText={(name) => this.setState({ name })}
