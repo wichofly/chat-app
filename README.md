@@ -14,8 +14,9 @@ location.
 
 ## Tech used  
 - React Native
-- Expo
+- Expo App
 - Android Emulator
+- React Native Gifted Chat 
 
 ## User Stories
 
