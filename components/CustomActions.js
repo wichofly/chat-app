@@ -8,7 +8,7 @@ import * as Location from 'expo-location';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
-class CustomAction extends Component {
+class CustomActions extends Component {
   // Upload images to firebase
   uploadImageFetch = async (uri) => {
     const blob = await new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ class CustomAction extends Component {
     try {
       if (status === 'granted') {
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: 'Images',
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
@@ -73,7 +73,7 @@ class CustomAction extends Component {
     try {
       if (status === 'granted') {
         let result = await ImagePicker.launchCameraAsync({
-          mediaTypes: 'Images',
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
         }).catch((error) => {
           console.log(error);
           Alert(error.message || 'An error has occurred!');
@@ -132,13 +132,17 @@ class CustomAction extends Component {
         switch (buttonIndex) {
           case 0:
             console.log('user wants to pick an image');
-            return this.pickImage();
+            this.pickImage();
+            break;
           case 1:
             console.log('user wants to take a photo');
-            return this.takePhoto();
+            this.takePhoto();
+            break;
           case 2:
             console.log('user wants to get their location');
-            return this.getLocation();
+            this.getLocation();
+            default:
+            break;
         }
       }
     );
@@ -189,10 +193,10 @@ const styles = StyleSheet.create({
   },
 });
 
-CustomAction.contextTypes = {
+CustomActions.contextTypes = {
   actionSheet: PropTypes.func,
 };
 
-const CustomActions = connectActionSheet(CustomAction);
+const connectedApp = connectActionSheet(CustomActions);
 
-export default CustomActions;
+export default connectedApp;
