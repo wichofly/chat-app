@@ -6,6 +6,8 @@ import { StyleSheet, View, Platform, KeyboardAvoidingView } from 'react-native';
 import firebase from 'firebase';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from '@react-native-community/netinfo';
+import CustomActions from './CustomActions';
+import MapView from 'react-native-maps';
 
 // const firebase = require('firebase');
 // require('firebase/firestore');
@@ -19,6 +21,7 @@ export default class Chat extends Component {
       user: {
         _id: '',
         name: '',
+        avatar: ''
       },
       isConnected: null,
     };
@@ -49,12 +52,15 @@ export default class Chat extends Component {
       let data = doc.data();
       messages.push({
         _id: data._id,
-        text: data.text,
+        text: data.text || '',
         createdAt: data.createdAt.toDate(),
         user: {
           _id: data.user._id,
           name: data.user.name,
+          avatar: data.user.avatar || '',
         },
+        image: data.image || null,
+        location: data.location || null,
       });
     });
     this.setState({
@@ -133,6 +139,7 @@ export default class Chat extends Component {
           user: {
             _id: user.uid,
             name: name,
+            // avatar: "https://placeimg.com/140/140/any"
           },
         });
         this.unsubscribe = this.referenceChatMessages
@@ -173,9 +180,11 @@ export default class Chat extends Component {
     this.referenceChatMessages.add({
       uid: this.state.uid,
       _id: message._id,
-      text: message.text,
+      text: message.text || '',
       createdAt: message.createdAt,
       user: message.user,
+      // image: message.image || null,
+      // location: message.location || null,
     });
   };
 
@@ -200,19 +209,46 @@ export default class Chat extends Component {
     }
   }
 
+  // actions '+'
+  renderCustomActions = (props) => {
+    return <CustomActions {...props} />;
+  };
+
+  // for the map, checks if the currentMessage contains location data.
+  renderCustomView(props) {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  }
+
   render() {
-    const { color, name } = this.props.route.params;
+    let { color, name, avatar } = this.props.route.params;
 
     return (
       <View style={[{ backgroundColor: color }, styles.container]}>
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
+          renderActions={this.renderCustomActions}
+          renderCustomView={this.renderCustomView}
           messages={this.state.messages}
           onSend={messages => this.onSend(messages)}
           user={{
             _id: this.state.user._id,
             name: name,
+            avatar: avatar
           }}
         />
         {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null
