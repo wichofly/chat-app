@@ -24,6 +24,7 @@ export default class Chat extends Component {
         avatar: ''
       },
       isConnected: null,
+      image: null
     };
 
     const firebaseConfig = {
@@ -114,41 +115,35 @@ export default class Chat extends Component {
         this.setState({
           isConnected: true,
         });
-        console.log('online');
+
+        // Reference to load messages from Firebase
+        this.referenceChatMessages = firebase.firestore().collection('messages');
+
+        // Authenticate user anonymously
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) {
+            firebase.auth().signInAnonymously();
+          }
+          this.setState({
+            uid: user.uid,
+            messages: [],
+            user: {
+              _id: user.uid,
+              name: name,
+              avatar: "https://placeimg.com/140/140/any"
+            },
+          });
+          this.unsubscribe = this.referenceChatMessages
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(this.onCollectionUpdate);
+        });
       } else {
         this.setState({
           isConnected: false,
         });
-        console.log('offline');
+        this.getMessages();
       }
     });
-
-    // If online load messages from Firebase, else load messages locally
-    if (this.state.isConnected === true) {
-      // Reference to load messages from Firebase
-      this.referenceChatMessages = firebase.firestore().collection('messages');
-
-      // Authenticate user anonymously
-      this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
-        if (!user) {
-          firebase.auth().signInAnonymously();
-        }
-        this.setState({
-          uid: user.uid,
-          messages: [],
-          user: {
-            _id: user.uid,
-            name: name,
-            // avatar: "https://placeimg.com/140/140/any"
-          },
-        });
-        this.unsubscribe = this.referenceChatMessages
-          .orderBy('createdAt', 'desc')
-          .onSnapshot(this.onCollectionUpdate);
-      });
-    } else {
-      this.getMessages();
-    }
   }
 
   componentWillUnmount() {
@@ -199,20 +194,14 @@ export default class Chat extends Component {
 
   // hide input filed when user is offline
   renderInputToolbar(props) {
-    if (this.state.isConnected == false) {
+    if (this.state.isConnected === false) {
     } else {
-      return (
-        <InputToolbar
-          {...props}
-        />
-      );
+      return <InputToolbar {...props} />;
     }
   }
 
   // actions '+'
-  renderCustomActions = (props) => {
-    return <CustomActions {...props} />;
-  };
+  renderCustomActions = (props) => <CustomActions {...props} />;
 
   // for the map, checks if the currentMessage contains location data.
   renderCustomView(props) {
@@ -241,7 +230,7 @@ export default class Chat extends Component {
         <GiftedChat
           renderBubble={this.renderBubble.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
-          renderActions={this.renderCustomActions}
+          renderActions={this.renderCustomActions.bind(this)}
           renderCustomView={this.renderCustomView}
           messages={this.state.messages}
           onSend={messages => this.onSend(messages)}

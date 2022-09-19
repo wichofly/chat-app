@@ -1,53 +1,53 @@
-import React, { Component } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import * as Permissions from 'expo-permissions';
+import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
+import { connectActionSheet } from '@expo/react-native-action-sheet';
+// import * as Permissions from 'expo-permissions'; no more needed 
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
-export default class CustomActions extends Component {
-  render() {
-    // upload images to firebase
-    uploadImageFetch = async (uri) => {
-      const blob = await new Promise((resolve, reject) => {
-        // create a new XMLHttpRequest
-        const xhr = new XMLHttpRequest();
-        xhr.onload = function () {
-          resolve(xhr.response);
-        };
-        xhr.onerror = function (e) {
-          console.log(e);
-          reject(new TypeError('Network request failed'));
-        };
-        xhr.responseType = 'blob';
-        xhr.open('GET', uri, true);
-        xhr.send(null);
-      });
+class CustomAction extends Component {
+  // Upload images to firebase
+  uploadImageFetch = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function (e) {
+        console.log(e);
+        reject(new TypeError('Network request failed'));
+      };
+      xhr.responseType = 'blob';
+      xhr.open('GET', uri, true);
+      xhr.send(null);
+    });
 
-      const imageNameBefore = uri.split('/');
-      const imageName = imageNameBefore[imageNameBefore.length - 1];
+    const imageNameBefore = uri.split('/');
+    const imageName = imageNameBefore[imageNameBefore.length - 1];
 
-      // refernece to the storage
-      const ref = firebase.storage().ref().child(`images/${imageName}`);
+    // refernece to the storage
+    const ref = firebase.storage().ref().child(`images/${imageName}`);
 
-      const snapshot = await ref.put(blob);
+    const snapshot = await ref.put(blob);
 
-      // close the connection
-      blob.close();
+    // close the connection
+    blob.close();
 
-      return await snapshot.ref.getDownloadURL();
-    };
+    return await snapshot.ref.getDownloadURL();
+  };
 
-    // select image from library
-    pickImage = async () => {
-      // const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
+  // select image from library
+  pickImage = async () => {
+    // Ask for permission
+     // const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
       if (status === 'granted') {
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: 'Images',
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
@@ -56,22 +56,21 @@ export default class CustomActions extends Component {
           Alert(error.message || 'An error has occurred!');
         });
 
-        console.log(result);
-
         if (!result.cancelled) {
-          this.setState({
-            image: result.uri,
-          });
+          const imageUrl = await this.uploadImageFetch(result.uri);
+          this.props.onSend({ image: imageUrl });
         }
       }
-    };
+    } catch (error) {
+      console.log(error.message);
+      Alert(error.message || 'An error has occurred!');
+    }
+  };
 
-    // take a picture with camera
-    takePhoto = async () => {
-      const { status } = await Permissions.askAsync(
-        Permissions.MEDIA_LIBRARY && Permissions.CAMERA
-      );
-
+  takePhoto = async () => {
+    // Ask for permission
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    try {
       if (status === 'granted') {
         let result = await ImagePicker.launchCameraAsync({
           mediaTypes: 'Images',
@@ -79,80 +78,91 @@ export default class CustomActions extends Component {
           console.log(error);
           Alert(error.message || 'An error has occurred!');
         });
+
         if (!result.cancelled) {
-          this.setState({
-            image: result.uri,
-          });
+          const imageUrl = await this.uploadImageFetch(result.uri);
+          this.props.onSend({ image: imageUrl });
         }
       }
-    };
+    } catch (error) {
+      console.log(error.message);
+      Alert(error.message || 'An error has occurred!');
+    }
+  };
 
-    // share users location
-    getLocation = async () => {
-      // const { status } = await Permissions.askAsync(Permissions.LOCATION);
-      let { status } = await Location.requestForegroundPermissionsAsync();
-
+  getLocation = async () => {
+    // Ask for permission
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    try {
       if (status === 'granted') {
         let result = await Location.getCurrentPositionAsync({});
 
         if (result) {
-          this.setState({
-            location: result,
+          this.props.onSend({
+            location: {
+              longitude: result.coords.longitude,
+              latitude: result.coords.latitude,
+            },
           });
         }
       }
-    };
+    } catch (error) {
+      console.log(error.message);
+      Alert(error.message || 'An error has occurred!');
+    }
+  };
 
-    onActionPress = () => {
-      const options = [
-        'Choose From Library',
-        'Take Picture',
-        'Send Location',
-        'Cancel',
-      ];
-      const cancelButtonIndex = options.length - 1;
-      this.context.actionSheet().showActionWithOptions(
-        {
-          options,
-          cancelButtonIndex,
-        },
-        async (buttonIndex) => {
-          switch (buttonIndex) {
-            case 0:
-              console.log('user wants to pick an image');
-              return;
-            case 1:
-              console.log('user wants to take a photo');
-              return;
-            case 2:
-              console.log('user wants to get their location');
-            default:
-          }
+  // Actionsheet
+  onActionPress = () => {
+    // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
+    const options = [
+      'Choose From Library',
+      'Take Picture',
+      'Send Location',
+      'Cancel',
+    ];
+    const cancelButtonIndex = options.length - 1;
+
+    this.props.showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+      },
+      async (buttonIndex) => {
+        switch (buttonIndex) {
+          case 0:
+            console.log('user wants to pick an image');
+            return this.pickImage();
+          case 1:
+            console.log('user wants to take a photo');
+            return this.takePhoto();
+          case 2:
+            console.log('user wants to get their location');
+            return this.getLocation();
         }
-      );
-    };
+      }
+    );
+  };
+
+  render() {
     return (
       <>
         <TouchableOpacity
           accessible={true}
           accessibilityLabel="More options"
-          accessibilityHint="Send an image or your location"
+          accessibilityHint="Let's you choose to send an image or your geolocation"
           accessibilityRole="button"
           style={[styles.container]}
           onPress={this.onActionPress}
         >
-          <View style={[styles.iconText, this.props.wrapperStyle]}>
-            <Text style={[styles.iocnText, this.props.iconTextStyle]}>+</Text>
+          <View style={[styles.wrapper, this.props.wrapperStyle]}>
+            <Text style={[styles.iconText, this.props.iconTextStyle]}>+</Text>
           </View>
         </TouchableOpacity>
       </>
     );
   }
 }
-
-CustomActions.contextType = {
-  actionSheet: PropTypes.func,
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -163,9 +173,10 @@ const styles = StyleSheet.create({
   },
 
   wrapper: {
-    broderRadius: 13,
+    borderRadius: 13,
     borderColor: '#b2b2b2',
     borderWidth: 2,
+    width: 26,
     flex: 1,
   },
 
@@ -173,7 +184,15 @@ const styles = StyleSheet.create({
     color: '#b2b2b2',
     fontWeight: 'bold',
     fontSize: 16,
-    backgroungColor: 'transparent',
+    backgroundColor: 'transparent',
     textAlign: 'center',
-  }
+  },
 });
+
+CustomAction.contextTypes = {
+  actionSheet: PropTypes.func,
+};
+
+const CustomActions = connectActionSheet(CustomAction);
+
+export default CustomActions;
