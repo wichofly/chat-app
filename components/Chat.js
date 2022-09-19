@@ -183,8 +183,8 @@ export default class Chat extends Component {
       text: message.text || '',
       createdAt: message.createdAt,
       user: message.user,
-      // image: message.image || null,
-      // location: message.location || null,
+      image: message.image || null,
+      location: message.location || null,
     });
   };
 
@@ -234,7 +234,7 @@ export default class Chat extends Component {
   }
 
   render() {
-    let { color, name, avatar } = this.props.route.params;
+    let { color } = this.props.route.params;
 
     return (
       <View style={[{ backgroundColor: color }, styles.container]}>
@@ -247,8 +247,8 @@ export default class Chat extends Component {
           onSend={messages => this.onSend(messages)}
           user={{
             _id: this.state.user._id,
-            name: name,
-            avatar: avatar
+            name: this.state.user.name,
+            avatar: this.state.user.avatar
           }}
         />
         {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null
