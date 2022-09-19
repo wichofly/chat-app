@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { connectActionSheet } from '@expo/react-native-action-sheet';
@@ -42,7 +42,7 @@ class CustomActions extends Component {
   // select image from library
   pickImage = async () => {
     // Ask for permission
-     // const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    // const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     try {
       if (status === 'granted') {
@@ -141,7 +141,7 @@ class CustomActions extends Component {
           case 2:
             console.log('user wants to get their location');
             this.getLocation();
-            default:
+          default:
             break;
         }
       }
