@@ -36,6 +36,7 @@ class CustomActions extends Component {
     // close the connection
     blob.close();
 
+    // Get image URL from storage
     return await snapshot.ref.getDownloadURL();
   };
 
