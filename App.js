@@ -13,11 +13,6 @@ import Chat from './components/Chat';
 const Stack = createStackNavigator();
 
 export default class App extends Component {
-  // constructor(props) {
-  //   super(props);
-  //   this.state = { text: "" }
-  // }
-
   render() {
     return (
       <NavigationContainer>

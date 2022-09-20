@@ -3,14 +3,14 @@ import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat'
 // KeyboardAvoidingView helps to fix the keyboard out position on andorid
 // View and Platform will be used to determine the OS currently in use (I DID NOT HAVE THIS ISSUE BUT IS RECOMMENDED TO APPLY IT)
 import { StyleSheet, View, Platform, KeyboardAvoidingView } from 'react-native';
-import firebase from 'firebase';
+// import firebase from 'firebase';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from '@react-native-community/netinfo';
 import CustomActions from './CustomActions';
 import MapView from 'react-native-maps';
 
-// const firebase = require('firebase');
-// require('firebase/firestore');
+const firebase = require('firebase');
+require('firebase/firestore');
 
 export default class Chat extends Component {
   constructor() {
@@ -120,7 +120,7 @@ export default class Chat extends Component {
         this.referenceChatMessages = firebase.firestore().collection('messages');
 
         // Authenticate user anonymously
-        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
           if (!user) {
             firebase.auth().signInAnonymously();
           }

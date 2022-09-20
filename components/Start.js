@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { View, Text, Button, TextInput, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
-import userImg from '../assets/icon.svg'
 
 export default class Start extends Component {
   constructor(props) {

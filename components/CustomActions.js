@@ -197,6 +197,7 @@ CustomActions.contextTypes = {
   actionSheet: PropTypes.func,
 };
 
-const connectedApp = connectActionSheet(CustomActions);
 
-export default connectedApp;
+const ConnectedApp = connectActionSheet(CustomActions);
+
+export default ConnectedApp;
