@@ -24,3 +24,12 @@ export default class App extends Component {
     );
   }
 }
+
+// Add to storage/rules on firabe the next code: 
+// service firebase.storage {
+//   match /b/{bucket}/o {
+//     match /{allPaths=**} {
+//       allow read, write: if request.auth != null;
+//     }
+//   }
+// }
